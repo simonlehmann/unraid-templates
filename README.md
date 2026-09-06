@@ -19,7 +19,7 @@ marketplace.
 
 | App | Description |
 | --- | --- |
-| _none yet_ | |
+| [step-ca](step-ca/) | Private online certificate authority ([smallstep/step-ca](https://github.com/smallstep/certificates)) — issue TLS/SSH certs and run your own ACME server. |
 
 ## Repository structure
 
