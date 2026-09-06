@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  Repository profile for Unraid's Community Applications plugin.
+  Displayed alongside the templates in this repo when browsing/adding it as
+  a source in CA. Schema/requirements:
+  https://ca.unraid.net/submit/help/repository-info-xml
+-->
+<CommunityApplications>
+
+  <Profile>
+    A collection of Unraid Docker application templates maintained by Simon
+    Lehmann. For support, please open an issue on the GitHub repository.
+  </Profile>
+
+  <WebPage>https://github.com/simonlehmann/unraid-templates</WebPage>
+
+  <!--
+  <Icon>https://raw.githubusercontent.com/simonlehmann/unraid-templates/main/icon.svg</Icon>
+  -->
+
+  <!-- Optional support links -->
+  <!--
+  <Forum>...</Forum>
+  <Discord>...</Discord>
+  <Reddit>...</Reddit>
+  <Twitter>...</Twitter>
+  <Facebook>...</Facebook>
+  -->
+
+  <!-- Optional donation -->
+  <!--
+  <DonateLink>...</DonateLink>
+  <DonateText>...</DonateText>
+  -->
+
+  <!-- Optional media -->
+  <!--
+  <Photo>...</Photo>
+  <Video>...</Video>
+  -->
+
+</CommunityApplications>
