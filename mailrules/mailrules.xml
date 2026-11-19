@@ -1,0 +1,85 @@
+<Container version="2">
+  <Name>mailrules</Name>
+  <Repository>ghcr.io/turtlebyte-in/mailrules:latest</Repository>
+  <Registry>https://github.com/TurtleByte-IN/mailrules/pkgs/container/mailrules</Registry>
+  <Network>bridge</Network>
+
+  <Privileged>false</Privileged>
+
+  <!-- Same hardening as upstream's deploy/docker-compose.yml: the image only writes to /data,
+       so the root filesystem can be read-only. The image is distroless, so there is no shell
+       for the Console button. -->
+  <ExtraParams>--read-only --tmpfs /tmp --cap-drop=ALL --security-opt=no-new-privileges:true</ExtraParams>
+
+  <Icon>https://raw.githubusercontent.com/TurtleByte-IN/mailrules/main/web/public/icon-512.png</Icon>
+  <WebUI>http://[IP]:[PORT:8080]/</WebUI>
+
+  <Overview>
+Sorts incoming email over IMAP, in real time, using rules you write in
+plain English or as structured conditions - a self-hosted mail filter
+with an AI model deciding which rule an email matches.
+
+Works with any IMAP mailbox that signs in with a password or app password
+(iCloud, Gmail, Fastmail, Yahoo, Zoho, your own server). Outlook.com and
+Microsoft 365 are not supported by the self-hosted build.
+
+Choose the model that decides: a local Ollama server on your LAN (nothing
+leaves your network), any OpenAI-compatible endpoint, Anthropic, or the
+hosted Jev/Clef models. Rules made only of conditions, and sender rules,
+need no model at all.
+
+It starts safe: dry-run is on, so it records what it would do and changes
+no mailbox until you switch dry-run off. It never deletes mail, and every
+action can be undone for 30 days.
+
+Before the first start, make the appdata folder writable by the
+container's non-root user (uid 65532) - see the Requires note. Back up the
+whole appdata folder: it holds master.key, without which every stored
+mailbox password and API key is unrecoverable.
+  </Overview>
+
+  <Support>https://github.com/simonlehmann/unraid-templates/issues</Support>
+  <Project>https://mailrules.app/</Project>
+  <TemplateURL>https://raw.githubusercontent.com/simonlehmann/unraid-templates/main/mailrules/mailrules.xml</TemplateURL>
+  <ReadMe>https://raw.githubusercontent.com/simonlehmann/unraid-templates/main/mailrules/README.md</ReadMe>
+
+  <Category>Productivity: Tools:Utilities AI:</Category>
+  <ExtraSearchTerms>email mail imap filter sort rules inbox ai llm ollama gmail icloud fastmail</ExtraSearchTerms>
+  <Requires>The container runs as uid 65532, not root. Before the first start, open the Unraid terminal and run: mkdir -p /mnt/user/appdata/mailrules &amp;&amp; chown 65532:65532 /mnt/user/appdata/mailrules &amp;&amp; chmod 700 /mnt/user/appdata/mailrules (adjust the path if you change Appdata). Without this MailRules cannot create its database and will not start.</Requires>
+
+  <Date>2026-11-19</Date>
+  <Changes>Initial template (MailRules 0.3.0)</Changes>
+  <License>AGPL-3.0</License>
+
+  <Config Name="WebUI Port" Target="8080" Default="8080" Mode="tcp" Description="Port for the web UI and API (plain HTTP). Don't forward it to the internet - put a TLS reverse proxy in front for access from other devices." Type="Port" Display="always" Required="true" Mask="false"/>
+  <Config Name="Appdata" Target="/data" Default="/mnt/user/appdata/mailrules" Mode="rw" Description="SQLite database and master.key. Must be owned by uid 65532 (see Requires). Back up the whole folder: losing master.key loses every stored mailbox password and API key." Type="Path" Display="always" Required="true" Mask="false"/>
+  <Config Name="Secure Cookie" Target="MAILRULES_COOKIE_SECURE" Default="false" Description="Mark the login cookie HTTPS-only (true/false/auto). Leave 'false' to sign in over plain HTTP at http://[IP]:PORT on your LAN. Set 'true' once you reach MailRules only through an HTTPS reverse proxy - signing in over plain HTTP then stops working. 'auto' means true inside Docker." Type="Variable" Display="always" Required="true" Mask="false"/>
+  <Config Name="Ollama URL" Target="OLLAMA_URL" Default="" Description="Optional. URL of your Ollama server, e.g. http://192.168.1.10:11434 - use the LAN IP or container name, not localhost (that is this container). Ollama must listen on more than loopback (OLLAMA_HOST=0.0.0.0). Then choose Ollama and a model in MailRules' Settings, or set Decision Model below." Type="Variable" Display="always" Required="false" Mask="false"/>
+
+  <Config Name="Public URL" Target="MAILRULES_PUBLIC_URL" Default="" Description="Where you open MailRules, e.g. https://mailrules.home.arpa. Links in the summary email start with it. Empty uses http://127.0.0.1:8080." Type="Variable" Display="advanced" Required="false" Mask="false"/>
+  <Config Name="Trusted Proxies" Target="MAILRULES_TRUSTED_PROXIES" Default="" Description="Behind a reverse proxy: the proxy's IP or CIDR range (comma-separated), e.g. 172.17.0.0/16 for a proxy on Docker's default bridge, so failed sign-in limits count each visitor rather than the proxy. Empty trusts no proxy. Never list a range your LAN clients can reach MailRules from directly." Type="Variable" Display="advanced" Required="false" Mask="false"/>
+  <Config Name="Dry Run" Target="MAILRULES_DRY_RUN" Default="" Description="Initial dry-run state (true/false). Empty means true: decisions are recorded but no mailbox is changed. Once you switch dry-run in the web UI, that choice wins over this." Type="Variable" Display="advanced" Required="false" Mask="false"/>
+
+  <Config Name="Decision Model" Target="MAILRULES_DECIDER" Default="" Description="The model that picks which rule an email matches: jev, clef, anthropic, openai or ollama. Empty means jev. Easier to set in Settings in the web UI, which wins over this." Type="Variable" Display="advanced" Required="false" Mask="false"/>
+  <Config Name="Decision Model Name" Target="MAILRULES_DECIDER_MODEL" Default="" Description="Model name for the decision model, e.g. llama3.2 for Ollama. Required for openai and ollama; empty uses the provider's default for the others." Type="Variable" Display="advanced" Required="false" Mask="false"/>
+  <Config Name="Rule Composer Model" Target="MAILRULES_COMPOSER_MODEL" Default="" Description="Model that writes rules from your words: a Claude model name, openai:MODEL or ollama:MODEL (e.g. ollama:llama3.2). Empty means claude-haiku-4-5, which needs an Anthropic API key." Type="Variable" Display="advanced" Required="false" Mask="false"/>
+  <Config Name="Fallback Model" Target="MAILRULES_FALLBACK_MODEL" Default="" Description="Claude model asked for a second opinion when the decision model is unsure. Empty means claude-haiku-4-5. Only active when an Anthropic API key is set; to turn it off, clear it in Settings in the web UI." Type="Variable" Display="advanced" Required="false" Mask="false"/>
+
+  <Config Name="OpenRouter API Key" Target="OPENROUTER_API_KEY" Default="" Description="For the Jev decision model. Keys can instead be entered in Settings in the web UI, where they are stored encrypted (recommended - variables here are visible in docker inspect)." Type="Variable" Display="advanced" Required="false" Mask="true"/>
+  <Config Name="Anthropic API Key" Target="ANTHROPIC_API_KEY" Default="" Description="For the fallback model, the Claude rule composer and the anthropic decision model. Can instead be entered in the web UI." Type="Variable" Display="advanced" Required="false" Mask="true"/>
+  <Config Name="OpenAI-compatible Base URL" Target="OPENAI_BASE_URL" Default="" Description="Base URL of an OpenAI-compatible endpoint (e.g. LiteLLM, vLLM, LM Studio). Empty means OpenAI itself." Type="Variable" Display="advanced" Required="false" Mask="false"/>
+  <Config Name="OpenAI-compatible API Key" Target="OPENAI_API_KEY" Default="" Description="API key for the OpenAI-compatible endpoint. Can instead be entered in the web UI." Type="Variable" Display="advanced" Required="false" Mask="true"/>
+  <Config Name="Cloudflare Account ID" Target="CLOUDFLARE_ACCOUNT_ID" Default="" Description="For the Clef decision model (Cloudflare Workers AI)." Type="Variable" Display="advanced" Required="false" Mask="false"/>
+  <Config Name="Cloudflare API Token" Target="CLOUDFLARE_API_TOKEN" Default="" Description="For the Clef decision model. Can instead be entered in the web UI." Type="Variable" Display="advanced" Required="false" Mask="true"/>
+
+  <Config Name="SMTP Host" Target="MAILRULES_SMTP_HOST" Default="" Description="Optional. Outgoing mail server for the summary email, e.g. smtp.fastmail.com (no scheme or port). Empty disables the summary email." Type="Variable" Display="advanced" Required="false" Mask="false"/>
+  <Config Name="SMTP Port" Target="MAILRULES_SMTP_PORT" Default="" Description="Empty uses the usual port for SMTP TLS: 587 for starttls, 465 for implicit, 25 for none." Type="Variable" Display="advanced" Required="false" Mask="false"/>
+  <Config Name="SMTP TLS" Target="MAILRULES_SMTP_TLS" Default="" Description="starttls, implicit or none. Empty means starttls." Type="Variable" Display="advanced" Required="false" Mask="false"/>
+  <Config Name="SMTP User" Target="MAILRULES_SMTP_USER" Default="" Description="User name for the mail server. Empty sends without signing in." Type="Variable" Display="advanced" Required="false" Mask="false"/>
+  <Config Name="SMTP Password" Target="MAILRULES_SMTP_PASSWORD" Default="" Description="Password for the mail server; an app password where the provider has them." Type="Variable" Display="advanced" Required="false" Mask="true"/>
+  <Config Name="SMTP From" Target="MAILRULES_SMTP_FROM" Default="" Description="The summary's From address, e.g. MailRules &lt;me@example.com&gt;. Most servers want one of your own addresses." Type="Variable" Display="advanced" Required="false" Mask="false"/>
+
+  <Config Name="Log Level" Target="LOG_LEVEL" Default="" Description="debug, info, warn or error. Empty means info. Logs never contain passwords, keys or email text." Type="Variable" Display="advanced" Required="false" Mask="false"/>
+  <Config Name="Redact Addresses in Log" Target="LOG_REDACT_ADDRESSES" Default="" Description="true replaces every email address in the log with a stable tag such as &lt;email:3f9a2c1b&gt;. Empty keeps addresses (self-hosted default)." Type="Variable" Display="advanced" Required="false" Mask="false"/>
+
+</Container>
