@@ -104,9 +104,11 @@ itself. Upstream runs it as uid `65532`. This template instead runs it
 as `nobody:users` (99:100), with `--user 99:100` in **Extra Parameters**,
 so its appdata is owned like every other Unraid app's.
 
-If the container stops on first start with a permission error in its log,
-the appdata folder isn't writable by 99:100. Open **Terminal** in the
-Unraid web UI and run (adjust the path if you changed **Appdata**):
+Unraid creates a new appdata folder as `nobody:users`, so a fresh install
+needs no manual step. A restored, copied or moved folder can end up owned
+by someone else, though. If the container then stops with a permission
+error in its log, open **Terminal** in the Unraid web UI and run (adjust
+the path if you changed **Appdata**):
 
 ```bash
 chown -R 99:100 /mnt/user/appdata/mailrules
@@ -287,12 +289,10 @@ Certificate changed, …).
 
 ## Before you rely on this
 
-This template hasn't yet been validated end-to-end on a real Unraid host,
-in particular: whether a fresh appdata folder is writable by 99:100 without a manual
-`chown`, sign-in over
-plain HTTP and through Nginx Proxy Manager, the Ollama connection, and
-that the database and `master.key` survive container recreation and an
-image upgrade. [TESTING.md](TESTING.md) tracks that. If you hit anything
+This template installs and starts cleanly on Unraid, but hasn't yet been
+validated end-to-end, in particular: sign-in over plain HTTP and through
+Nginx Proxy Manager, the Ollama connection, and that the database and
+`master.key` survive container recreation and an image upgrade. [TESTING.md](TESTING.md) tracks that. If you hit anything
 that doesn't match what's documented here, please
 [open an issue](https://github.com/simonlehmann/unraid-templates/issues).
 

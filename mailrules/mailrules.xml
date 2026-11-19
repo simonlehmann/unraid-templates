@@ -47,7 +47,7 @@ mailbox password and API key is unrecoverable.
 
   <Category>Productivity: Tools:Utilities AI:</Category>
   <ExtraSearchTerms>email mail imap filter sort rules inbox ai llm ollama gmail icloud fastmail</ExtraSearchTerms>
-  <Requires>The container runs as nobody:users (99:100), not root, and cannot fix folder ownership itself. If it stops on first start with a permission error in the log, open the Unraid terminal and run: chown -R 99:100 /mnt/user/appdata/mailrules (adjust the path if you changed Appdata), then start it again.</Requires>
+  <Requires>The container runs as nobody:users (99:100), not root, and cannot fix folder ownership itself. A fresh install needs nothing, but after restoring or moving the appdata folder, if it stops with a permission error, run in the Unraid terminal: chown -R 99:100 /mnt/user/appdata/mailrules (adjust the path if you changed Appdata).</Requires>
 
   <Date>2026-11-19</Date>
   <Changes>Initial template (MailRules 0.3.0)</Changes>
