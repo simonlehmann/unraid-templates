@@ -7,10 +7,14 @@ documentation.
 
 ## Basic installation
 
-- [ ] Without the `chown` step, the container fails clearly (note the
-      exact log message for the README's troubleshooting section).
-- [ ] With the `chown 65532:65532` step, the container starts.
-- [ ] `--read-only`, `--tmpfs /tmp`, `--cap-drop=ALL` and
+- [ ] With no appdata folder created beforehand, note who owns the
+      folder Unraid/Docker creates (`ls -ld /mnt/user/appdata/mailrules`)
+      and whether the container starts as 99:100 without a manual `chown`.
+      If not, drop the "if" from the Requires note and README and make
+      the `chown -R 99:100` a required pre-install step.
+- [ ] If it fails, note the exact log message for the README's
+      troubleshooting section, and confirm `chown -R 99:100` fixes it.
+- [ ] `--user 99:100`, `--read-only`, `--tmpfs /tmp`, `--cap-drop=ALL` and
       `no-new-privileges` in Extra Parameters cause no errors.
 - [ ] WebUI button opens `http://[IP]:8080/`.
 - [ ] `/healthz` and `/readyz` respond.
@@ -48,12 +52,12 @@ documentation.
 - [ ] Stop/start: account, mailboxes, rules and keys retained.
 - [ ] Remove and recreate the container (same appdata): nothing lost,
       no re-setup prompt.
-- [ ] `master.key` exists in appdata with owner 65532.
+- [ ] `master.key` exists in appdata owned by 99:100, mode 600.
 
 ## Backup and restore
 
 - [ ] Appdata Backup plugin stops the container and backs it up.
-- [ ] Restore into a fresh folder plus `chown -R 65532:65532`: works.
+- [ ] Restore into a fresh folder plus `chown -R 99:100`: works.
 - [ ] Restore without `master.key`: MailRules refuses to start with the
       documented message.
 - [ ] `MAILRULES_NEW_MASTER_KEY=true` for one start recovers, as documented.

@@ -62,23 +62,7 @@ condition-only rules that need no model at all.
 
 ## Installation
 
-### 1. Prepare the appdata folder
-
-The image is distroless and runs as uid `65532`, not root, and the folder
-Docker creates for a new bind mount belongs to root. MailRules then can't
-create its database and won't start. Before the first start, open
-**Terminal** in the Unraid web UI and run:
-
-```bash
-mkdir -p /mnt/user/appdata/mailrules
-chown 65532:65532 /mnt/user/appdata/mailrules
-chmod 700 /mnt/user/appdata/mailrules
-```
-
-(Change the path if you change **Appdata** in the template.) Do this again
-whenever you restore a backup or move the folder.
-
-### 2. Install the template
+### 1. Install the template
 
 Install from **Apps** once the template is in Community Applications, or
 manually before then (see the [repository README](../README.md#getting-these-templates)).
@@ -88,7 +72,7 @@ The settings that matter on first install:
 | Setting | Default | Notes |
 | --- | --- | --- |
 | WebUI Port | `8080` | Change it if another container already uses 8080. |
-| Appdata | `/mnt/user/appdata/mailrules` | Must be owned by uid 65532 (step 1). |
+| Appdata | `/mnt/user/appdata/mailrules` | Must be writable by `nobody:users` (99:100), see [Appdata permissions](#appdata-permissions). |
 | Secure Cookie | `false` | Leave it `false` until you have an HTTPS proxy in front, see [HTTPS](#https-with-nginx-proxy-manager). |
 | Ollama URL | empty | Optional, see [Using Ollama](#using-ollama). |
 
@@ -96,7 +80,7 @@ Everything under **Show more settings** is optional. Model choice,
 thresholds and API keys are easier to set in MailRules' own **Settings**
 page, which overrides the environment variables anyway.
 
-### 3. First run
+### 2. First run
 
 1. Start the container and open the **WebUI** right away. The first
    visit shows **Set up MailRules** and creates the only admin account,
@@ -111,6 +95,26 @@ page, which overrides the environment variables anyway.
 
 Upstream's [First run](https://github.com/TurtleByte-IN/mailrules/blob/main/docs/guide/first-run.md)
 guide covers each step in detail.
+
+### Appdata permissions
+
+The image is distroless and has no root startup script, so unlike
+LinuxServer-style images it can't fix the ownership of its data folder
+itself. Upstream runs it as uid `65532`. This template instead runs it
+as `nobody:users` (99:100), with `--user 99:100` in **Extra Parameters**,
+so its appdata is owned like every other Unraid app's.
+
+If the container stops on first start with a permission error in its log,
+the appdata folder isn't writable by 99:100. Open **Terminal** in the
+Unraid web UI and run (adjust the path if you changed **Appdata**):
+
+```bash
+chown -R 99:100 /mnt/user/appdata/mailrules
+```
+
+Then start the container again. Note that upstream's own docs say
+`chown 65532:65532`. That's for the image's default user, not for this
+template.
 
 ## Using Ollama
 
@@ -220,7 +224,7 @@ such as `ghcr.io/turtlebyte-in/mailrules:0.3.0`.
 backup, *including* `master.key`, fix ownership, then start:
 
 ```bash
-chown -R 65532:65532 /mnt/user/appdata/mailrules
+chown -R 99:100 /mnt/user/appdata/mailrules
 ```
 
 If `master.key` is missing and the database holds stored passwords,
@@ -235,7 +239,9 @@ and re-enter your passwords and keys. Details are in upstream's
 
 The template applies the same hardening as upstream's Docker Compose file:
 `--read-only` root filesystem with a `/tmp` tmpfs, `--cap-drop=ALL`, and
-`no-new-privileges`, with the container running as non-root uid 65532.
+`no-new-privileges`. The container runs as non-root `nobody:users`
+(99:100) instead of the image's uid 65532, see
+[Appdata permissions](#appdata-permissions).
 
 - **Unraid publishes the port on all interfaces.** Upstream's own setup
   publishes it to `127.0.0.1` only, which doesn't suit a NAS reached from
@@ -254,8 +260,8 @@ The template applies the same hardening as upstream's Docker Compose file:
 ## Troubleshooting
 
 - **Container stops right after starting with a permission error in
-  the log:** the appdata folder isn't owned by uid 65532. Re-run the
-  commands in [step 1](#1-prepare-the-appdata-folder).
+  the log:** the appdata folder isn't writable by 99:100. See
+  [Appdata permissions](#appdata-permissions).
 - **Can't stay signed in / login loops:** **Secure Cookie** is `true` (or
   `auto`) but you're using plain HTTP. Use the HTTPS proxy address, or set
   it to `false` for direct LAN access.
@@ -282,7 +288,8 @@ Certificate changed, …).
 ## Before you rely on this
 
 This template hasn't yet been validated end-to-end on a real Unraid host,
-in particular: first start with the appdata ownership step, sign-in over
+in particular: whether a fresh appdata folder is writable by 99:100 without a manual
+`chown`, sign-in over
 plain HTTP and through Nginx Proxy Manager, the Ollama connection, and
 that the database and `master.key` survive container recreation and an
 image upgrade. [TESTING.md](TESTING.md) tracks that. If you hit anything
