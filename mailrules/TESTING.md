@@ -7,14 +7,14 @@ documentation.
 
 ## Basic installation
 
-- [ ] With no appdata folder created beforehand, note who owns the
-      folder Unraid/Docker creates (`ls -ld /mnt/user/appdata/mailrules`)
-      and whether the container starts as 99:100 without a manual `chown`.
-      If not, drop the "if" from the Requires note and README and make
-      the `chown -R 99:100` a required pre-install step.
-- [ ] If it fails, note the exact log message for the README's
-      troubleshooting section, and confirm `chown -R 99:100` fixes it.
-- [ ] `--user 99:100`, `--read-only`, `--tmpfs /tmp`, `--cap-drop=ALL` and
+- [x] Installed from CA with no manual `chown`: Unraid created the
+      appdata folder as `99:100` (`drwxr-xr-x`) and the container started.
+      MailRules wrote `mailrules.db` (`-rw-r--r--`) and `master.key`
+      (`-rw-------`), all owned by `99:100`. (2026-11-19)
+- [ ] Note the exact log message when the folder isn't writable (e.g.
+      `chown -R root:root` it and start), and confirm `chown -R 99:100`
+      fixes it, for the README's troubleshooting section.
+- [x] `--user 99:100`, `--read-only`, `--tmpfs /tmp`, `--cap-drop=ALL` and
       `no-new-privileges` in Extra Parameters cause no errors.
 - [ ] WebUI button opens `http://[IP]:8080/`.
 - [ ] `/healthz` and `/readyz` respond.
