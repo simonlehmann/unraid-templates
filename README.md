@@ -46,6 +46,7 @@ instead).
 | App | Description |
 | --- | --- |
 | [step-ca](step-ca/) | Private online certificate authority ([smallstep/step-ca](https://github.com/smallstep/certificates)) — issue TLS/SSH certs and run your own ACME server. |
+| [MailRules](mailrules/) | Sorts incoming email over IMAP with rules written in plain English ([TurtleByte-IN/mailrules](https://github.com/TurtleByte-IN/mailrules)) — use a local Ollama model or a cloud one. |
 
 ## Repository structure
 
